@@ -55,3 +55,10 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# Output files
+*.out
+*.dat
+
+# Document files
+*.pdf
