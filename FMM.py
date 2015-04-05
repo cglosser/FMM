@@ -1,6 +1,13 @@
 import numpy as np
+from numpy.linalg import norm
 from scipy.special import hankel2
 from collections   import namedtuple
+
+NUM_ANGLE_QUADRATURE  = 32
+DISCRETE_ANGLES       = np.linspace(0, 2*np.pi, NUM_ANGLE_QUADRATURE)
+DISCRETE_KHAT_VECTORS = np.transpose([np.cos(DISCRETE_ANGLES), 
+                                      np.sin(DISCRETE_ANGLES)])
+K_NORM = 1.0
 
 class Grid(object):
     def __init__(self, grid_dim, pts):
@@ -38,9 +45,33 @@ class Grid(object):
 
 
 class Box(object):
-    def __init__(self, loc, pts):
-        self.location = loc #bottom-left corner if box is in first quadrant
-        self.pts = pts
+    def __init__(self, location, points):
+        self.location = location #bottom-left corner if box is in first quadrant
+        self.points = points
 
     def planewaves(self):
-       pass 
+        norms = np.array([np.linalg.norm(pt - self.location)
+            for pt in self.points])
+        point_angles = np.arctan2(self.points[:,1], self.points[:,0])
+        cos_arg = np.array([alpha - point_angles 
+            for alpha in DISCRETE_ANGLES])
+        print cos_arg
+        return np.sum(np.exp(-1j*K_NORM*norms*np.cos(cos_arg)), 1)
+
+def translation_operator(box1, box2):
+    def hankel_terms(p_max):
+        for idx in range(-p_max, p_max + 1):
+            yield hankel2(idx, dist)*np.exp(
+                    -1j*idx*angle - DISCRETE_ANGLES - np.pi/2)
+        
+    dist  = norm(box2.location - box1.location)
+    angle = np.arccos(np.dot(box1.location, box2.location)/
+                (norm(box1.location)*norm(box2.location)))
+
+    return np.sum(hankel_terms(5))
+
+
+
+
+def cos_polar_angle(point):
+    return point[0]/norm(point)
