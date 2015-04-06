@@ -64,6 +64,11 @@ class Box(object):
             for alpha in DISCRETE_ANGLES])
         return np.exp(-1j*K_NORM*norms*np.cos(cos_arg))
 
+    def source_expansion(self):
+        """Accumulate all of the planewave expansions, weighted by each 
+        point-source's current, for the box acting as a *source*.
+        """
+        pass
 def translation_operator(box1, box2):
     def hankel_terms(p_max):
         for idx in range(-p_max, p_max + 1):
@@ -76,6 +81,11 @@ def translation_operator(box1, box2):
 
     return np.sum(hankel_terms(5))
 
+    def observation_expansion(self):
+        """Accumulate all of the planewave expansions, weighted by each
+        angle's quadrature weight, for the box acting as an *observer*.
+        """
+        pass
 
 
 
