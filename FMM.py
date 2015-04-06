@@ -69,17 +69,6 @@ class Box(object):
         point-source's current, for the box acting as a *source*.
         """
         pass
-def translation_operator(box1, box2):
-    def hankel_terms(p_max):
-        for idx in range(-p_max, p_max + 1):
-            yield hankel2(idx, dist)*np.exp(
-                    -1j*idx*angle - DISCRETE_ANGLES - np.pi/2)
-        
-    dist  = norm(box2.location - box1.location)
-    angle = np.arccos(np.dot(box1.location, box2.location)/
-                (norm(box1.location)*norm(box2.location)))
-
-    return np.sum(hankel_terms(5))
 
     def observation_expansion(self):
         """Accumulate all of the planewave expansions, weighted by each
@@ -87,6 +76,12 @@ def translation_operator(box1, box2):
         """
         pass
 
+def translation_operator(box1, box2):
+    delta_r = box2.location - box1.location
+    dist    = norm(delta_r)
+    angle   = np.arctan2(delta_r[1], delta_r[0])
 
+    hankel_terms = np.array(list(hankel2(idx, dist)*np.exp(-1j*idx*(angle - DISCRETE_ANGLES 
+        - np.pi/2)) for idx in range(-HARMONIC_MAX, HARMONIC_MAX + 1)))
 
     return np.sum(hankel_terms, axis=0)
