@@ -49,15 +49,20 @@ class Box(object):
     def __init__(self, location, points):
         self.location = location #bottom-left corner if box is in first quadrant
         self.points = points
+        self.wavefunctions = self.planewaves()
 
     def planewaves(self):
+        """Construct terms in the planewave expansion for each point in Box,
+        evaluated at each alpha angle in DISCRETE_ANGLES. Uses the (-i*k.r)
+        convention for *source* points; requires a conjugation for
+        *observation* points.
+        """
         norms = np.array([np.linalg.norm(pt - self.location)
             for pt in self.points])
-        point_angles = np.arctan2(self.points[:,1], self.points[:,0])
+        point_angles = np.arctan2(self.points[:, 1], self.points[:, 0])
         cos_arg = np.array([alpha - point_angles 
             for alpha in DISCRETE_ANGLES])
-        print cos_arg
-        return np.sum(np.exp(-1j*K_NORM*norms*np.cos(cos_arg)), 1)
+        return np.exp(-1j*K_NORM*norms*np.cos(cos_arg))
 
 def translation_operator(box1, box2):
     def hankel_terms(p_max):
