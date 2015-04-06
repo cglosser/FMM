@@ -3,7 +3,6 @@ from numpy.linalg  import norm
 from scipy.special import hankel2
 from collections   import namedtuple
 from itertools     import groupby
-from collections   import namedtuple
 
 NUM_ANGLE_QUADRATURE  = 32
 DISCRETE_ANGLES       = np.linspace(0, 2*np.pi, NUM_ANGLE_QUADRATURE)
@@ -81,12 +80,16 @@ class Box(object):
         pass
 
 def translation_operator(box1, box2):
+    """Give the sum-of-harmonics translation operator evaluated between a pair
+    of Box objects. Constructs each term in a generator object for memory
+    efficiency.
+    """
     delta_r = box2.location - box1.location
     dist    = norm(delta_r)
     angle   = np.arctan2(delta_r[1], delta_r[0])
 
-    hankel_terms = np.array(list(hankel2(idx, dist)*np.exp(-1j*idx*(angle - DISCRETE_ANGLES 
-        - np.pi/2)) for idx in range(-HARMONIC_MAX, HARMONIC_MAX + 1)))
+    hankel_terms = (hankel2(idx, dist)*np.exp(-1j*idx*(angle - DISCRETE_ANGLES 
+        - np.pi/2)) for idx in range(-HARMONIC_MAX, HARMONIC_MAX + 1))
 
     return np.sum(hankel_terms, axis=0)
 
