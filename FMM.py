@@ -79,5 +79,4 @@ def translation_operator(box1, box2):
 
 
 
-def cos_polar_angle(point):
-    return point[0]/norm(point)
+    return np.sum(hankel_terms, axis=0)
