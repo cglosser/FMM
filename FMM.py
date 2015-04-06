@@ -1,13 +1,15 @@
 import numpy as np
-from numpy.linalg import norm
+from numpy.linalg  import norm
 from scipy.special import hankel2
 from collections   import namedtuple
+from itertools     import groupby
 
 NUM_ANGLE_QUADRATURE  = 32
 DISCRETE_ANGLES       = np.linspace(0, 2*np.pi, NUM_ANGLE_QUADRATURE)
 DISCRETE_KHAT_VECTORS = np.transpose([np.cos(DISCRETE_ANGLES), 
                                       np.sin(DISCRETE_ANGLES)])
 K_NORM = 1.0
+HARMONIC_MAX = 5
 
 class Grid(object):
     def __init__(self, grid_dim, pts):
@@ -31,7 +33,8 @@ class Grid(object):
 
     def partition_points(self, pts):
         box_ids = np.array([self.__box_id(b) for b in self.__box_points(pts)])
-        pts, box_ids = pts[box_ids.argsort()], sort(box_ids)
+        pts     = pts[box_ids.argsort()]
+        box_ids = sorted(box_ids)
 
         rle = [(i, len(list(j))) for (j, i) in groupby(box_ids)]
         box_points = [[] for _ in range(self.num_boxes)]
@@ -41,8 +44,6 @@ class Grid(object):
             count += total
 
         return box_points
-
-
 
 class Box(object):
     def __init__(self, location, points):
