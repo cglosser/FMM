@@ -3,6 +3,7 @@ from numpy.linalg  import norm
 from scipy.special import hankel2
 from collections   import namedtuple
 from itertools     import groupby
+from collections   import namedtuple
 
 NUM_ANGLE_QUADRATURE  = 32
 DISCRETE_ANGLES       = np.linspace(0, 2*np.pi, NUM_ANGLE_QUADRATURE)
@@ -10,6 +11,8 @@ DISCRETE_KHAT_VECTORS = np.transpose([np.cos(DISCRETE_ANGLES),
                                       np.sin(DISCRETE_ANGLES)])
 K_NORM = 1.0
 HARMONIC_MAX = 5
+
+PointCurrent = namedtuple("PointCurrent", ["location","current"])
 
 class Grid(object):
     def __init__(self, grid_dim, pts):
@@ -46,9 +49,10 @@ class Grid(object):
         return box_points
 
 class Box(object):
-    def __init__(self, location, points):
+    def __init__(self, location, sources):
         self.location = location #bottom-left corner if box is in first quadrant
-        self.points = points
+        self.points   = np.array([p.location for p in sources])
+        self.currents = np.array([p.current for p in sources])
         self.wavefunctions = self.planewaves()
 
     def planewaves(self):
@@ -85,3 +89,7 @@ def translation_operator(box1, box2):
         - np.pi/2)) for idx in range(-HARMONIC_MAX, HARMONIC_MAX + 1)))
 
     return np.sum(hankel_terms, axis=0)
+
+def construct_sources(num, box_dim = 1):
+    return [PointCurrent(current = np.random.rand(), 
+        location = np.random.rand(2)*box_dim) for n in range(num)]
