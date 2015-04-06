@@ -72,7 +72,7 @@ class Box(object):
         """Accumulate all of the planewave expansions, weighted by each 
         point-source's current, for the box acting as a *source*.
         """
-        pass
+        return np.dot(self.wavefunctions, self.currents)
 
     def observation_expansion(self):
         """Accumulate all of the planewave expansions, weighted by each
