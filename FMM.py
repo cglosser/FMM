@@ -5,11 +5,12 @@ from collections   import namedtuple
 from itertools     import groupby
 
 NUM_ANGLE_QUADRATURE  = 32
+DELTA_THETA           = 2*np.pi/(NUM_ANGLE_QUADRATURE - 1)
 DISCRETE_ANGLES       = np.linspace(0, 2*np.pi, NUM_ANGLE_QUADRATURE)
 DISCRETE_KHAT_VECTORS = np.transpose([np.cos(DISCRETE_ANGLES), 
                                       np.sin(DISCRETE_ANGLES)])
 K_NORM = 1.0
-HARMONIC_MAX = 5
+HARMONIC_MAX = 15
 
 PointCurrent = namedtuple("PointCurrent", ["location","current"])
 
