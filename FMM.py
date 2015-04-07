@@ -78,7 +78,7 @@ class Box(object):
         """Accumulate all of the planewave expansions, weighted by each
         angle's quadrature weight, for the box acting as an *observer*.
         """
-        pass
+        return np.transpose(np.conjugate(self.wavefunctions))
 
 def translation_operator(box1, box2):
     """Give the sum-of-harmonics translation operator evaluated between a pair
