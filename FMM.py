@@ -61,9 +61,9 @@ class Box(object):
         convention for *source* points; requires a conjugation for
         *observation* points.
         """
-        norms = np.array([np.linalg.norm(pt - self.location)
-            for pt in self.points])
-        point_angles = np.arctan2(self.points[:, 1], self.points[:, 0])
+        delta_r = np.array([p - self.location for p in self.points])
+        norms = np.array([np.linalg.norm(p) for p in delta_r])
+        point_angles = np.arctan2(delta_r[:, 1], delta_r[:, 0])
         cos_arg = np.array([alpha - point_angles 
             for alpha in DISCRETE_ANGLES])
         return np.exp(-1j*K_NORM*norms*np.cos(cos_arg))
