@@ -89,8 +89,9 @@ def translation_operator(box1, box2):
     dist    = norm(delta_r)
     angle   = np.arctan2(delta_r[1], delta_r[0])
 
-    hankel_terms = (hankel2(idx, dist)*np.exp(-1j*idx*(angle - DISCRETE_ANGLES 
-        - np.pi/2)) for idx in range(-HARMONIC_MAX, HARMONIC_MAX + 1))
+    hankel_terms = (hankel2(idx, K_NORM*dist)*np.exp(-1j*idx*
+        (angle - DISCRETE_ANGLES - np.pi/2)) 
+        for idx in range(-HARMONIC_MAX, HARMONIC_MAX + 1))
 
     return np.sum(hankel_terms, axis=0)
 
