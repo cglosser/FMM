@@ -1,5 +1,4 @@
 import numpy as np
-from numpy.linalg  import norm
 from scipy.special import hankel2
 from collections   import namedtuple
 from itertools     import groupby
@@ -86,7 +85,7 @@ def translation_operator(box1, box2):
     efficiency.
     """
     delta_r = box2.location - box1.location
-    dist    = norm(delta_r)
+    dist    = np.linalg.norm(delta_r)
     angle   = np.arctan2(delta_r[1], delta_r[0])
 
     hankel_terms = (hankel2(idx, K_NORM*dist)*np.exp(-1j*idx*
@@ -96,5 +95,8 @@ def translation_operator(box1, box2):
     return np.sum(hankel_terms, axis=0)
 
 def construct_sources(num, box_dim = 1):
+    """Assemble a collection of random pointlike current sources within 
+    [0, box_dim] in both x and y.
+    """
     return [PointCurrent(current = np.random.rand(), 
-        location = np.random.rand(2)*box_dim) for n in range(num)]
+        location = np.random.rand(2)*box_dim) for _ in range(num)]
