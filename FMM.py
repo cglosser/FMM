@@ -3,7 +3,7 @@ from scipy.special import hankel2
 from collections   import namedtuple
 from itertools     import groupby
 
-NUM_ANGLE_QUADRATURE  = 32
+NUM_ANGLE_QUADRATURE  = 64
 DELTA_THETA           = 2*np.pi/(NUM_ANGLE_QUADRATURE - 1)
 DISCRETE_ANGLES       = np.linspace(0, 2*np.pi, NUM_ANGLE_QUADRATURE)
 DISCRETE_KHAT_VECTORS = np.transpose([np.cos(DISCRETE_ANGLES), 
@@ -14,13 +14,12 @@ HARMONIC_MAX = 15
 PointCurrent = namedtuple("PointCurrent", ["location","current"])
 
 class Grid(object):
-    def __init__(self, grid_dim, pts):
-        """Construct a Grid of grid_dim Boxes on the interval [0, 1] in both x
-        and y.
-        """
-        self.grid_dim     = grid_dim
-        self.num_boxes    = grid_dim**2
-        self.grid_spacing = 1/float(grid_dim)
+    def __init__(self, grid_length, sources):
+        self.grid_length   = float(grid_length)
+        self.sources       = sources
+        self.grid_density  = len(self.sources)/self.grid_length**2
+        self.boxes_per_row = np.ceil(len(self.sources)**0.25)
+        self.box_length    = self.grid_length/self.boxes_per_row
 
     def __box_id(self, location):
         """Convert an integral (x, y) box coordinate to its unique integer id
@@ -52,7 +51,8 @@ class Box(object):
         self.location = location #bottom-left corner if box is in first quadrant
         self.points   = np.array([p.location for p in sources])
         self.currents = np.array([p.current for p in sources])
-        self.wavefunctions = self.planewaves()
+        self.outgoing_rays = self.source_expansion()
+        self.incoming_rays = self.observation_expansion()
 
     def planewaves(self):
         """Construct terms in the planewave expansion for each point in Box,
@@ -71,13 +71,13 @@ class Box(object):
         """Accumulate all of the planewave expansions, weighted by each 
         point-source's current, for the box acting as a *source*.
         """
-        return np.dot(self.wavefunctions, self.currents)
+        return np.dot(self.planewaves(), self.currents)
 
     def observation_expansion(self):
         """Accumulate all of the planewave expansions, weighted by each
         angle's quadrature weight, for the box acting as an *observer*.
         """
-        return np.transpose(np.conjugate(self.wavefunctions))
+        return np.transpose(np.conjugate(self.planewaves()))
 
 def translation_operator(box1, box2):
     """Give the sum-of-harmonics translation operator evaluated between a pair
