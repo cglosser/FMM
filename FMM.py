@@ -24,7 +24,7 @@ class Grid(object):
     def __box_id(self, location):
         """Convert an integral (x, y) box coordinate to its unique integer id
         """
-        return location[0] + self.grid_dim*location[1]
+        return int(location[0] + self.boxes_per_row*location[1])
 
     def __box_points(self, points):
         """Determine the (x, y) integral coordinates of the box containing each
