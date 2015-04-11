@@ -18,7 +18,7 @@ class Grid(object):
         self.grid_length   = float(grid_length)
         self.sources       = sources
         self.grid_density  = len(self.sources)/self.grid_length**2
-        self.boxes_per_row = np.ceil(len(self.sources)**0.25)
+        self.boxes_per_row = int(np.ceil(len(self.sources)**0.25))
         self.box_length    = self.grid_length/self.boxes_per_row
 
     def __box_id(self, location):
@@ -26,35 +26,49 @@ class Grid(object):
         """
         return int(location[0] + self.boxes_per_row*location[1])
 
+    def __box_coords(self, box_id):
+        """Convert a unique box id to integral coordinates in the box grid
+        """
+        bpr = self.boxes_per_row
+        col_id = np.floor(box_id/bpr)
+        return np.array([box_id - col_id*bpr, col_id]).astype(int)
+
     def __box_points(self, points):
         """Determine the (x, y) integral coordinates of the box containing each
-        item in points
+        source point
         """
-        return np.floor(points/self.grid_spacing).astype(int) 
+        coords = np.array([i.location for i in self.sources])
+        return np.floor(coords/self.box_length).astype(int) 
 
-    def partition_points(self, pts):
-        box_ids = np.array([self.__box_id(b) for b in self.__box_points(pts)])
-        pts     = pts[box_ids.argsort()]
-        box_ids = sorted(box_ids)
+    def partition_points(self):
+        box_ids = [self.__box_id(np.floor(i.location/self.box_length))
+                for i in self.sources]
 
-        rle = [(i, len(list(j))) for (j, i) in groupby(box_ids)]
-        box_points = [[] for _ in range(self.num_boxes)]
-        total = 0
-        for box, count in rle:
-            box_points[box].append(pts[total:total + count])
-            count += total
+        boxes = [[] for _ in range(self.boxes_per_row**2)]
+    
+        for box_num in range(self.boxes_per_row**2):
+            corner = self.__box_coords(box_num)*self.box_length
+            boxes[box_num] = Box(corner, 
+                    [s for idx, s in enumerate(self.sources) 
+                        if box_ids[idx] == box_num])
 
-        return box_points
+        return boxes
+
+
+
+
 
 class Box(object):
     def __init__(self, location, sources):
         self.location = location #bottom-left corner if box is in first quadrant
         self.points   = np.array([p.location for p in sources])
         self.currents = np.array([p.current for p in sources])
-        self.outgoing_rays = self.source_expansion()
-        self.incoming_rays = self.observation_expansion()
 
-    def planewaves(self):
+        #pre-compute these -- they get used a lot
+        self.outgoing_rays = self.__source_expansion()
+        self.incoming_rays = self.__observation_expansion()
+
+    def __planewaves(self):
         """Construct terms in the planewave expansion for each point in Box,
         evaluated at each alpha angle in DISCRETE_ANGLES. Uses the (-i*k.r)
         convention for *source* points; requires a conjugation for
@@ -67,17 +81,17 @@ class Box(object):
             for alpha in DISCRETE_ANGLES])
         return np.exp(-1j*K_NORM*norms*np.cos(cos_arg))
 
-    def source_expansion(self):
+    def __source_expansion(self):
         """Accumulate all of the planewave expansions, weighted by each 
         point-source's current, for the box acting as a *source*.
         """
-        return np.dot(self.planewaves(), self.currents)
+        return np.dot(self.__planewaves(), self.currents)
 
-    def observation_expansion(self):
+    def __observation_expansion(self):
         """Accumulate all of the planewave expansions, weighted by each
         angle's quadrature weight, for the box acting as an *observer*.
         """
-        return np.transpose(np.conjugate(self.planewaves()))
+        return np.transpose(np.conjugate(self.__planewaves()))
 
 def translation_operator(box1, box2):
     """Give the sum-of-harmonics translation operator evaluated between a pair
