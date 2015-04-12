@@ -14,12 +14,11 @@ def naiive_potential(sources):
 
 def fmm_potential(sources, grid_len):
     g = FMM.Grid(grid_len, sources)
-    num_boxes = g.boxes_per_row**2
-    return [g.compute_box_interaction(i,j) for i in range(num_boxes)
-            for j in range(num_boxes) if i != j]
+    return [FMM.compute_box_interaction(b1,b2) 
+            for b1 in g.boxes for b2 in g.boxes if b1 is not b2]
 
 def main():
-    sources = FMM.construct_sources(512, 100)
+    sources = FMM.construct_sources(256, 100)
 
     print(timing(naiive_potential, sources))
     print(timing(fmm_potential, sources, 100))

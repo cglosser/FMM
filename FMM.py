@@ -54,16 +54,6 @@ class Grid(object):
 
         return boxes
 
-    def compute_box_interaction(self, src_id, obs_id):
-        src = self.boxes[src_id]
-        obs = self.boxes[obs_id]
-
-        planewaves = (obs.incoming_rays *
-                translation_operator(src, obs) *
-                src.outgoing_rays)
-
-        return np.trapz(planewaves, dx = DELTA_THETA)/(2*np.pi)
-
 class Box(object):
     def __init__(self, location, sources):
         self.location = location #bottom-left corner if box is in first quadrant
@@ -98,6 +88,12 @@ class Box(object):
         angle's quadrature weight, for the box acting as an *observer*.
         """
         return np.transpose(np.conjugate(self.__planewaves()))
+
+def compute_box_interaction(src_box, obs_box):
+    box_to_box = translation_operator(src_box, obs_box)
+    planewaves = obs_box.incoming_rays*box_to_box*src_box.outgoing_rays
+
+    return np.trapz(planewaves, dx = DELTA_THETA)/(2*np.pi)
 
 def translation_operator(box1, box2):
     """Give the sum-of-harmonics translation operator evaluated between a pair
