@@ -1,7 +1,6 @@
 import numpy as np
 from scipy.special import hankel2
 from collections   import namedtuple
-from itertools     import groupby
 
 NUM_ANGLE_QUADRATURE  = 64
 DELTA_THETA           = 2*np.pi/(NUM_ANGLE_QUADRATURE - 1)
@@ -34,7 +33,7 @@ class Grid(object):
         col_id = np.floor(box_id/bpr)
         return np.array([box_id - col_id*bpr, col_id]).astype(int)
 
-    def __box_points(self, points):
+    def __box_points(self):
         """Determine the (x, y) integral coordinates of the box containing each
         source point
         """
