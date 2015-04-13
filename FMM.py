@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.special import hankel2
 from collections   import namedtuple
+from itertools     import groupby
 
 NUM_ANGLE_QUADRATURE  = 64
 DELTA_THETA           = 2*np.pi/(NUM_ANGLE_QUADRATURE - 1)
@@ -41,18 +42,17 @@ class Grid(object):
         return np.floor(coords/self.box_length).astype(int)
 
     def __partition_points(self):
-        box_ids = [self.__box_id(np.floor(i.location/self.box_length))
-                for i in self.sources]
+        def source_boxid(source):
+            box_ij = np.floor(source.location/self.box_length).astype(int)
+            return self.boxes_per_row*box_ij[1] + box_ij[0]
 
-        boxes = [[] for _ in range(self.boxes_per_row**2)]
+        box_ids = np.array([source_boxid(s) for s in self.sources])
+        self.sources = [self.sources[i] for i in box_ids.argsort()]
 
-        for box_num in range(self.boxes_per_row**2):
-            corner = self.__box_coords(box_num)*self.box_length
-            boxes[box_num] = Box(corner,
-                    [s for idx, s in enumerate(self.sources)
-                        if box_ids[idx] == box_num])
+        groups = groupby(self.sources, source_boxid)
 
-        return boxes
+        return [Box(self.__box_coords(i)*self.box_length, list(j))
+                for i,j in groups]
 
 class Box(object):
     def __init__(self, location, sources):
