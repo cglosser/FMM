@@ -89,9 +89,9 @@ class Box(object):
         """
         return np.transpose(np.conjugate(self.__planewaves()))
 
-def compute_box_interaction(src_box, obs_box):
-    """Evaluate the H2 potential between every pair of points in src_box and
-    obs_box by way of the FMM algorithm.
+def box_interaction(src_box, obs_box):
+    """Evaluate the H2 potential *from* every point in src_box *to*
+    obs_box by way of the FMM algorithm (consequently one-directional).
     """
     box_to_box = translation_operator(src_box, obs_box)
     planewaves = obs_box.incoming_rays*box_to_box*src_box.outgoing_rays
