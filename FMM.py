@@ -20,7 +20,7 @@ class Grid(object):
         self.grid_density  = len(self.sources)/self.grid_length**2
         self.boxes_per_row = int(np.ceil(len(self.sources)**0.25))
         self.box_length    = self.grid_length/self.boxes_per_row
-        self.boxes = self.__partition_points()
+        self.boxes = self.__create_boxes()
 
     def __box_id(self, location):
         """Convert an integral (x, y) box coordinate to its unique integer id
@@ -41,7 +41,7 @@ class Grid(object):
         coords = np.array([i.location for i in self.sources])
         return np.floor(coords/self.box_length).astype(int)
 
-    def __partition_points(self):
+    def __create_boxes(self):
         def source_boxid(source):
             box_ij = np.floor(source.location/self.box_length).astype(int)
             return self.boxes_per_row*box_ij[1] + box_ij[0]
@@ -90,6 +90,9 @@ class Box(object):
         return np.transpose(np.conjugate(self.__planewaves()))
 
 def compute_box_interaction(src_box, obs_box):
+    """Evaluate the H2 potential between every pair of points in src_box and
+    obs_box by way of the FMM algorithm.
+    """
     box_to_box = translation_operator(src_box, obs_box)
     planewaves = obs_box.incoming_rays*box_to_box*src_box.outgoing_rays
 
