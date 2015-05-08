@@ -3,13 +3,13 @@ from scipy.special import hankel2
 from collections   import namedtuple
 from itertools     import groupby
 
-NUM_ANGLE_QUADRATURE  = 64
+NUM_ANGLE_QUADRATURE  = 128
 DELTA_THETA           = 2*np.pi/(NUM_ANGLE_QUADRATURE - 1)
 DISCRETE_ANGLES       = np.linspace(0, 2*np.pi, NUM_ANGLE_QUADRATURE)
 DISCRETE_KHAT_VECTORS = np.transpose([np.cos(DISCRETE_ANGLES),
                                       np.sin(DISCRETE_ANGLES)])
 K_NORM = 1.0
-HARMONIC_MAX = 15
+HARMONIC_MAX = 64
 
 PointCurrent = namedtuple("PointCurrent", ["location","current"])
 
@@ -51,8 +51,8 @@ class Grid(object):
 
         groups = groupby(self.sources, source_boxid)
 
-        return [Box(self.__box_coords(i)*self.box_length, list(j))
-                for i,j in groups]
+        return [Box(self.__box_coords(idx)*self.box_length, list(sources))
+                for idx, sources in groups]
 
 class Box(object):
     def __init__(self, location, sources):
