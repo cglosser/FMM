@@ -51,8 +51,8 @@ class Grid(object):
 
     def __create_boxes(self):
         def source_boxid(source):
-            box_ij = np.floor(source.location/self.box_dimensions).astype(int)
-            return self.__box_id(box_ij)
+            box_ij = np.floor(source.location/self.box_length).astype(int)
+            return self.boxes_per_row*box_ij[1] + box_ij[0]
 
         box_ids = np.array([source_boxid(s) for s in self.sources])
         self.sources = [self.sources[i] for i in box_ids.argsort()]
@@ -127,11 +127,3 @@ def construct_sources(num, box_dim = 1):
     """
     return [PointCurrent(current = 1,
         location = np.random.rand(2)*box_dim) for _ in range(num)]
-
-def source_density(sources):
-    pts = np.array([s.location for s in sources])
-    min_bounds = pts.min(0)
-    max_bounds = pts.max(0) 
-    area = np.product(max_bounds - min_bounds)
-
-    return len(pts)/area
