@@ -98,7 +98,7 @@ class Box(object):
         """
         return np.transpose(np.conjugate(self.__planewaves()))
 
-def box_interaction(src_box, obs_box):
+def fmm_interaction(src_box, obs_box):
     """Evaluate the H2 potential *from* every point in src_box *to*
     obs_box by way of the FMM algorithm (consequently one-directional).
     """
@@ -106,6 +106,13 @@ def box_interaction(src_box, obs_box):
     planewaves = obs_box.incoming_rays*box_to_box*src_box.outgoing_rays
 
     return np.trapz(planewaves, dx = DELTA_THETA)/(2*np.pi)
+
+def naiive_interaction(src_box, obs_box):
+    """Evaluate the H2 potential from a source to an observation box naiively
+    by computing the interaction between every pair.
+    """
+    return np.array([[np.sum(hankel2(0, K_NORM*np.linalg.norm(obs - src))) 
+        for src in src_box.points] for obs in obs_box.points])
 
 def translation_operator(box1, box2):
     """Give the sum-of-harmonics translation operator evaluated between a pair
