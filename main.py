@@ -12,8 +12,8 @@ def naiive_potential(sources):
     return [hankel2(0, FMM.K_NORM*np.linalg.norm(p2 - p1))
             for p2 in pts for p1 in pts if p2 is not p1]
 
-def fmm_potential(sources, grid_len):
-    g = FMM.Grid(grid_len, sources)
+def fmm_potential(sources):
+    g = FMM.Grid(sources)
     return [FMM.box_interaction(b1,b2) 
             for b1 in g.boxes for b2 in g.boxes if b1 is not b2]
 
@@ -23,12 +23,12 @@ def naiive_interaction(src_box, obs_box):
 
 def main():
     for numParticles in 2**np.arange(5,12):
-        sources = FMM.construct_sources(numParticles, 100)
+        sources = FMM.construct_sources(numParticles, 5)
 
         print(numParticles)
         t1 = timing(naiive_potential, sources)
-        t2 = timing(fmm_potential, sources, 100)
-        g = FMM.Grid(100, sources)
+        t2 = timing(fmm_potential, sources)
+        g = FMM.Grid(sources)
         
         for src_idx, source_box in enumerate(g.boxes):
             for obs_idx, obs_box in enumerate(g.boxes):
