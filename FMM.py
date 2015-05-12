@@ -21,7 +21,8 @@ class Grid(object):
         # everything lies in the first quadrant and boxes start at the origin
 
         if num_boxes is None:
-            boxes_per_row = int(np.ceil(len(self.sources)**0.25))
+            # gives optimal sqrt(n) particles-per-box
+            boxes_per_row = int(np.ceil(len(self.sources)**0.25)) 
             self.num_boxes      = np.array([boxes_per_row, boxes_per_row])
             self.box_dimensions = self.dimensions/self.num_boxes
         else:
