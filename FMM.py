@@ -3,36 +3,44 @@ from scipy.special import hankel2
 from collections   import namedtuple
 from itertools     import groupby
 
-NUM_ANGLE_QUADRATURE  = 128
+NUM_ANGLE_QUADRATURE  = 32
 DELTA_THETA           = 2*np.pi/(NUM_ANGLE_QUADRATURE - 1)
 DISCRETE_ANGLES       = np.linspace(0, 2*np.pi, NUM_ANGLE_QUADRATURE)
 DISCRETE_KHAT_VECTORS = np.transpose([np.cos(DISCRETE_ANGLES),
                                       np.sin(DISCRETE_ANGLES)])
 K_NORM = 1.0
-HARMONIC_MAX = 64
+HARMONIC_MAX = 16
 
 PointCurrent = namedtuple("PointCurrent", ["location","current"])
 
 class Grid(object):
-    def __init__(self, grid_length, sources):
-        self.grid_length   = float(grid_length)
-        self.sources       = sources
-        self.grid_density  = len(self.sources)/self.grid_length**2
-        self.boxes_per_row = int(np.ceil(len(self.sources)**0.25))
-        self.box_length    = self.grid_length/self.boxes_per_row
+    def __init__(self, sources, num_boxes = None):
+        self.sources = sources
+        self.dimensions = 1.02*np.amax([s.location for s in sources], 0)
+        # 1.05 is a fudge to include maximal points in x & y; assumes
+        # everything lies in the first quadrant and boxes start at the origin
+
+        if num_boxes is not None:
+            self.num_boxes      = np.array(num_boxes)
+            self.box_dimensions = self.dimensions/self.num_boxes
+        else:
+            boxes_per_row = int(np.ceil(len(self.sources)**0.25))
+            self.num_boxes      = np.array([boxes_per_row, boxes_per_row])
+            self.box_dimensions = self.dimensions/self.num_boxes
+
         self.boxes = self.__create_boxes()
 
     def __box_id(self, location):
         """Convert an integral (x, y) box coordinate to its unique integer id
         """
-        return int(location[0] + self.boxes_per_row*location[1])
+        return int(location[0] + self.num_boxes[0]*location[1])
 
     def __box_coords(self, box_id):
         """Convert a unique box id to integral coordinates in the box grid
         """
-        bpr = self.boxes_per_row
-        col_id = np.floor(box_id/bpr)
-        return np.array([box_id - col_id*bpr, col_id]).astype(int)
+        boxes_per_row = self.num_boxes[0]
+        col_id = np.floor(box_id/boxes_per_row)
+        return np.array([box_id - col_id*boxes_per_row, col_id]).astype(int)
 
     def __box_points(self):
         """Determine the (x, y) integral coordinates of the box containing each
@@ -43,15 +51,15 @@ class Grid(object):
 
     def __create_boxes(self):
         def source_boxid(source):
-            box_ij = np.floor(source.location/self.box_length).astype(int)
-            return self.boxes_per_row*box_ij[1] + box_ij[0]
+            box_ij = np.floor(source.location/self.box_dimensions).astype(int)
+            return self.__box_id(box_ij)
 
         box_ids = np.array([source_boxid(s) for s in self.sources])
         self.sources = [self.sources[i] for i in box_ids.argsort()]
 
         groups = groupby(self.sources, source_boxid)
 
-        return [Box(self.__box_coords(idx)*self.box_length, list(sources))
+        return [Box(self.__box_coords(idx)*self.box_dimensions, list(sources))
                 for idx, sources in groups]
 
 class Box(object):
@@ -119,3 +127,11 @@ def construct_sources(num, box_dim = 1):
     """
     return [PointCurrent(current = 1,
         location = np.random.rand(2)*box_dim) for _ in range(num)]
+
+def source_density(sources):
+    pts = np.array([s.location for s in sources])
+    min_bounds = pts.min(0)
+    max_bounds = pts.max(0) 
+    area = np.product(max_bounds - min_bounds)
+
+    return len(pts)/area
