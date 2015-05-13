@@ -121,8 +121,8 @@ def naiive_interaction(src_box, obs_box):
     """Evaluate the H2 potential from a source to an observation box naiively
     by computing the interaction between every pair.
     """
-    return np.array([[np.sum(hankel2(0, K_NORM*np.linalg.norm(obs - src))) 
-        for src in src_box.points] for obs in obs_box.points])
+    return np.array([np.sum([hankel2(0, K_NORM*np.linalg.norm(obs - src)) for
+        src in src_box.points]) for obs in obs_box.points])
 
 def translation_operator(box1, box2):
     """Give the sum-of-harmonics translation operator evaluated between a pair
