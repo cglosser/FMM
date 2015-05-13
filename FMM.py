@@ -22,7 +22,7 @@ class Grid(object):
 
         if num_boxes is None:
             # gives optimal sqrt(n) particles-per-box
-            boxes_per_row = int(np.ceil(len(self.sources)**0.25)) 
+            boxes_per_row = int(np.ceil(len(self.sources)**0.25))
             self.num_boxes      = np.array([boxes_per_row, boxes_per_row])
             self.box_dimensions = self.dimensions/self.num_boxes
         else:
@@ -70,14 +70,15 @@ class Grid(object):
 
         groups = groupby(self.sources, source_boxid)
 
-        return [Box(self.__box_coords(idx)*self.box_dimensions, list(sources))
-                for idx, sources in groups]
+        return [Box(self.__box_coords(idx)*self.box_dimensions,
+            self.box_dimensions, list(sources)) for idx, sources in groups]
 
 class Box(object):
-    def __init__(self, location, sources):
-        self.location = location #bottom-left corner if box is in first quadrant
-        self.points   = np.array([p.location for p in sources])
-        self.currents = np.array([p.current for p in sources])
+    def __init__(self, location, dimensions, sources):
+        self.location   = location # corner closest to origin
+        self.dimensions = dimensions # x and y widths
+        self.points     = np.array([p.location for p in sources])
+        self.currents   = np.array([p.current for p in sources])
 
         #pre-compute these -- they get used a lot
         self.outgoing_rays = self.__source_expansion()
