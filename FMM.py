@@ -3,13 +3,13 @@ from scipy.special import hankel2
 from collections   import namedtuple
 from itertools     import groupby
 
-NUM_ANGLE_QUADRATURE  = 32
+NUM_ANGLE_QUADRATURE  = 128
 DELTA_THETA           = 2*np.pi/(NUM_ANGLE_QUADRATURE - 1)
 DISCRETE_ANGLES       = np.linspace(0, 2*np.pi, NUM_ANGLE_QUADRATURE)
 DISCRETE_KHAT_VECTORS = np.transpose([np.cos(DISCRETE_ANGLES),
                                       np.sin(DISCRETE_ANGLES)])
 K_NORM = 1.0
-HARMONIC_MAX = 16
+HARMONIC_MAX = 64
 
 PointCurrent = namedtuple("PointCurrent", ["location","current"])
 
@@ -30,6 +30,16 @@ class Grid(object):
             self.box_dimensions = self.dimensions/self.num_boxes
 
         self.boxes = self.__create_boxes()
+
+    def nearby(self, box1_id, box2_id):
+        """Boolean test if boxes lie adjacent to each other in the grid.
+        """
+        box1_coords = self.__box_coords(box1_id)
+        box2_coords = self.__box_coords(box2_id)
+
+        delta = abs(box2_coords - box1_coords)
+
+        return np.any(delta == 0) or np.any(delta == 1)
 
     def __box_id(self, location):
         """Convert an integral (x, y) box coordinate to its unique integer id
